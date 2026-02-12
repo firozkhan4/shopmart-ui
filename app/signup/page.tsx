@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { User, Mail, Lock, ShieldCheck, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -15,9 +17,30 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate backend call
-    console.log(formData);
-    setTimeout(() => setIsLoading(false), 2000);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+
+      if (!res.ok) {
+        alert("Invalid Email and Password")
+      } else {
+        const data = await res.json()
+        localStorage.setItem("token", data.data.token)
+        router.push("/")
+        console.log({ data })
+      }
+    } catch (error: any) {
+      console.error(error.message)
+    } finally {
+      setIsLoading(false)
+    }
+
   };
 
   return (
@@ -51,22 +74,6 @@ export default function SignupPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Full Name */}
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                <input
-                  name="name"
-                  type="text"
-                  placeholder="John Doe"
-                  className="w-full text-black rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 outline-none transition-all focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
             {/* Email */}
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">Email Address</label>

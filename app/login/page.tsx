@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react'; // Standard icons
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +27,12 @@ export default function LoginPage() {
 
       if (!res.ok) {
         alert("Invalid Email and Password")
+      } else {
+        const data = await res.json()
+        localStorage.setItem("token", data.data.token)
+        router.push("/")
+        console.log({ data })
       }
-
-      const data = await res.json()
-      console.log({ data })
     } catch (error: any) {
       console.error(error.message)
     } finally {
